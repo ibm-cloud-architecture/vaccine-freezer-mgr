@@ -1,0 +1,7 @@
+[
+    { "reeferID" : "C01",
+    "capacity" : 100,
+     "type": "B13",
+     "brand": "Binder", 
+     "status": "Empty"}
+]
