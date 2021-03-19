@@ -3,5 +3,15 @@
     "capacity" : 100,
      "type": "B13",
      "brand": "Binder", 
-     "status": "Empty"}
+     "status": "Empty"},
+     { "reeferID" : "C02",
+        "capacity" : 80,
+         "type": "B12",
+         "brand": "Binder", 
+         "status": "Empty"},
+         { "reeferID" : "C03",
+            "capacity" : 100,
+             "type": "B13",
+             "brand": "Binder", 
+             "status": "Empty"}
 ]

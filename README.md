@@ -1,12 +1,17 @@
-# vaccine-reefer-mgr project
+# Vaccine Freezer manager service
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
-
-If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
+This is a basic quarkus - reactive messaging app to listen to Alerts on freezer and also manage the life cycle of each freezer devices. This is to complete the Cold Chain or order management use cases of the [vaccine solution demo]().
 
 ## Running the application in dev mode
 
-You can run your application in dev mode that enables live coding using:
+To run locally in dev mode, you need to start the Kafka and Zookeeper so the app can connect to Kafka.  
+
+```shell
+docker-compose up -d
+```
+
+You can then run the application in dev mode that enables live coding using:
+
 ```shell script
 ./mvnw compile quarkus:dev
 ```
@@ -16,18 +21,32 @@ You can run your application in dev mode that enables live coding using:
 ## Packaging and running the application
 
 The application can be packaged using:
-```shell script
-./mvnw package
-```
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
 
-If you want to build an _über-jar_, execute the following command:
 ```shell script
 ./mvnw package -Dquarkus.package.type=uber-jar
 ```
 
+It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory and a set of openshift / kubernetes manifests.
+
 The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
+
+## Git Action
+
+The .github folder has a git Action workflow to build the image and push to your selected registry. You need to define the following github secrets to make it working: For DOCKER_REGISTRY we are using `quay.io` and `ibmcase` DOCKER_REPOSITORY.
+
+```shell
+DOCKER_USERNAME 
+DOCKER_PASSWORD
+DOCKER_REPOSITORY 
+DOCKER_IMAGE_NAME 
+DOCKER_REGISTRY
+```
+
+Which means a docker image is already available for you to use if you want to deploy to OpenShift directly.
+
+## Deploy to OpenShift
+
+Once logged to the cluster.
 
 ## Creating a native executable
 
@@ -44,11 +63,3 @@ Or, if you don't have GraalVM installed, you can run the native executable build
 You can then execute your native executable with: `./target/vaccine-reefer-mgr-1.0.0-SNAPSHOT-runner`
 
 If you want to learn more about building native executables, please consult https://quarkus.io/guides/maven-tooling.html.
-
-## Provided examples
-
-### RESTEasy JAX-RS example
-
-REST is easy peasy with this Hello World RESTEasy resource.
-
-[Related guide section...](https://quarkus.io/guides/getting-started#the-jax-rs-resources)

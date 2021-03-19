@@ -3,7 +3,9 @@ package ibm.tgtm.eda.api;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -13,16 +15,16 @@ import org.jboss.resteasy.annotations.SseElementType;
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
 import org.reactivestreams.Publisher;
 
-import ibm.tgtm.eda.domain.Reefer;
-import ibm.tgtm.eda.domain.ReeferService;
+import ibm.tgtm.eda.domain.Freezer;
+import ibm.tgtm.eda.domain.FreezerService;
 import ibm.tgtm.eda.infrastructure.events.ReeferAlert;
 
 
 @Path("/reefers")
-public class ReeferResource {
+public class FreezerResource {
 
     @Inject
-    public ReeferService service;
+    public FreezerService service;
 
     @Inject
     @Channel("internal-alert-stream")
@@ -31,15 +33,22 @@ public class ReeferResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Reefer> getAll() {
+    public List<Freezer> getAll() {
         return service.getAllReefers();
     }
 
     @GET
     @Path("/{reeferId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Reefer getReeferById(@PathParam String reeferId) {
+    public Freezer getReeferById(@PathParam String reeferId) {
         return service.getReeferById(reeferId);
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Freezer saveNewFreezer( Freezer newFreezer) {
+        return service.saveReefer(newFreezer);
     }
 
     @GET
