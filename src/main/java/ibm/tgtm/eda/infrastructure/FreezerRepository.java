@@ -10,20 +10,20 @@ import javax.inject.Singleton;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 
-import ibm.tgtm.eda.domain.Reefer;
+import ibm.tgtm.eda.domain.Freezer;
 
 @Singleton
-public class ReeferRepository {
-    private static HashMap<String,Reefer> repo = new HashMap<String,Reefer>();
+public class FreezerRepository {
+    private static HashMap<String,Freezer> repo = new HashMap<String,Freezer>();
 
     private Jsonb mapper = JsonbBuilder.create();
 
-    public ReeferRepository() throws Exception {
+    public FreezerRepository() throws Exception {
         InputStream is = getClass().getClassLoader().getResourceAsStream("reefers.json");
         if (is == null) 
             throw new IllegalAccessError("file not found for reefer json");
         try {
-            List<Reefer> reefers = mapper.fromJson(is, new ArrayList<Reefer>(){}.getClass().getGenericSuperclass());
+            List<Freezer> reefers = mapper.fromJson(is, new ArrayList<Freezer>(){}.getClass().getGenericSuperclass());
             reefers.stream().forEach( (t) -> repo.put(t.reeferID,t));
         } catch (Exception e) {
             e.printStackTrace();
@@ -31,15 +31,15 @@ public class ReeferRepository {
         
     }
 
-    public List<Reefer> getAll(){
-        return new ArrayList<Reefer>(repo.values());
+    public List<Freezer> getAll(){
+        return new ArrayList<Freezer>(repo.values());
     }
 
-    public void addReefer(Reefer p) {
+    public void addReefer(Freezer p) {
         repo.put(p.reeferID, p);
     }
 
-    public Reefer getById(String key){
+    public Freezer getById(String key){
         return repo.get(key);
     }
 }

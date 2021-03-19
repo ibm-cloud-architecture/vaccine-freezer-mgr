@@ -6,22 +6,27 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.eclipse.microprofile.reactive.messaging.Acknowledgment;
+import org.eclipse.microprofile.reactive.messaging.Channel;
+import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 import org.eclipse.microprofile.reactive.messaging.Outgoing;
 import org.jboss.logging.Logger;
 
-import ibm.tgtm.eda.infrastructure.ReeferRepository;
+import ibm.tgtm.eda.infrastructure.FreezerRepository;
 import ibm.tgtm.eda.infrastructure.events.ReeferAlert;
 import io.smallrye.reactive.messaging.annotations.Broadcast;
 
 @ApplicationScoped
-public class ReeferService {
+public class FreezerService {
     private static Logger logger = Logger.getLogger("ReeferService");
 
     @Inject
-    public ReeferRepository repository;
+    @Channel("reefers") Emitter<Freezer> freezers;
 
-    public Reefer getReeferById(String id) {
+    @Inject
+    public FreezerRepository repository;
+
+    public Freezer getReeferById(String id) {
         return repository.getById(id);
     }
 
@@ -34,8 +39,13 @@ public class ReeferService {
         return inAlert;
     }
 
-    public List<Reefer> getAllReefers() {
+    public List<Freezer> getAllReefers() {
         return repository.getAll();
     }
 
+    public Freezer saveReefer(Freezer r){
+        repository.addReefer(r);
+        freezers.send(r);
+        return r;
+    }
 }

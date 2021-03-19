@@ -1,0 +1,194 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    app.quarkus.io/build-timestamp: 2021-03-18 - 22:09:19 +0000
+    app.openshift.io/vcs-url: https://github.com/ibm-cloud-architecture/vaccine-freezer-mgr.git
+    app.quarkus.io/commit-id: 86344685b092923c7e1b23213bfe4fefe8508147
+    app.quarkus.io/vcs-url: https://github.com/ibm-cloud-architecture/vaccine-freezer-mgr.git
+  labels:
+    app.kubernetes.io/name: freezer-mgr
+    app.openshift.io/runtime: quarkus
+    app.kubernetes.io/version: 1.0.0-SNAPSHOT
+    app: freezer-mgr
+  name: freezer-mgr
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    app.quarkus.io/build-timestamp: 2021-03-18 - 22:09:19 +0000
+    app.openshift.io/vcs-url: https://github.com/ibm-cloud-architecture/vaccine-freezer-mgr.git
+    app.quarkus.io/commit-id: 86344685b092923c7e1b23213bfe4fefe8508147
+    app.quarkus.io/vcs-url: https://github.com/ibm-cloud-architecture/vaccine-freezer-mgr.git
+  labels:
+    app.kubernetes.io/name: freezer-mgr
+    app.kubernetes.io/version: 1.0.0-SNAPSHOT
+    app.openshift.io/runtime: quarkus
+    app: freezer-mgr
+  name: freezer-mgr
+spec:
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+  selector:
+    app.kubernetes.io/name: freezer-mgr
+    app.kubernetes.io/version: 1.0.0-SNAPSHOT
+  type: ClusterIP
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: freezer-mgr-view
+roleRef:
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: view
+subjects:
+- kind: ServiceAccount
+  name: freezer-mgr
+---
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  annotations:
+    app.quarkus.io/build-timestamp: 2021-03-18 - 22:09:19 +0000
+    app.openshift.io/vcs-url: https://github.com/ibm-cloud-architecture/vaccine-freezer-mgr.git
+    app.quarkus.io/commit-id: 86344685b092923c7e1b23213bfe4fefe8508147
+    app.quarkus.io/vcs-url: https://github.com/ibm-cloud-architecture/vaccine-freezer-mgr.git
+  labels:
+    app.kubernetes.io/name: freezer-mgr
+    app.openshift.io/runtime: quarkus
+    app.kubernetes.io/version: 1.0.0-SNAPSHOT
+    app: freezer-mgr
+  name: freezer-mgr
+spec:
+  replicas: 1
+  selector:
+    app.kubernetes.io/version: 1.0.0-SNAPSHOT
+    app.kubernetes.io/name: freezer-mgr
+  template:
+    metadata:
+      annotations:
+        app.quarkus.io/build-timestamp: 2021-03-18 - 22:09:19 +0000
+        app.openshift.io/vcs-url: https://github.com/ibm-cloud-architecture/vaccine-freezer-mgr.git
+        app.quarkus.io/commit-id: 86344685b092923c7e1b23213bfe4fefe8508147
+        app.quarkus.io/vcs-url: https://github.com/ibm-cloud-architecture/vaccine-freezer-mgr.git
+      labels:
+        app.kubernetes.io/name: freezer-mgr
+        app.openshift.io/runtime: quarkus
+        app.kubernetes.io/version: 1.0.0-SNAPSHOT
+        app: freezer-mgr
+    spec:
+      containers:
+      - args:
+        - -jar
+        - /deployments/vaccine-freezer-mgr-1.0.0-SNAPSHOT-runner.jar
+        - -Dquarkus.http.host=0.0.0.0
+        - -Djava.util.logging.manager=org.jboss.logmanager.LogManager
+        command:
+        - java
+        env:
+        - name: KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: KAFKA_SSL_KEYSTORE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: user.password
+              name: tls-user
+        - name: KAFKA_SSL_TRUSTSTORE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: ca.password
+              name: vaccine-kafka-cluster-ca-cert
+        - name: JAVA_APP_JAR
+          value: /deployments/vaccine-freezer-mgr-1.0.0-SNAPSHOT-runner.jar
+        envFrom:
+        - configMapRef:
+            name: freezer-mgr-cm
+        - secretRef:
+            name: freezer-mgr-secret
+        image: quay.io/ibmcase/vaccine-freezer-mgr
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /q/health/live
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 0
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 10
+        name: freezer-mgr
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /q/health/ready
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 0
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 10
+        volumeMounts:
+        - mountPath: /deployments/certs/server
+          name: kafka-cert
+          readOnly: false
+          subPath: ""
+        - mountPath: /deployments/certs/user
+          name: user-cert
+          readOnly: false
+          subPath: ""
+      serviceAccount: freezer-mgr
+      volumes:
+      - name: kafka-cert
+        secret:
+          defaultMode: 384
+          optional: false
+          secretName: kafka-cluster-ca-cert
+      - name: user-cert
+        secret:
+          defaultMode: 384
+          optional: false
+          secretName: tls-user
+  triggers:
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - freezer-mgr
+      from:
+        kind: ImageStreamTag
+        name: freezer-mgr:1.0.0-SNAPSHOT
+    type: ImageChange
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    app.quarkus.io/build-timestamp: 2021-03-18 - 22:09:19 +0000
+    app.openshift.io/vcs-url: https://github.com/ibm-cloud-architecture/vaccine-freezer-mgr.git
+    app.quarkus.io/commit-id: 86344685b092923c7e1b23213bfe4fefe8508147
+    app.quarkus.io/vcs-url: https://github.com/ibm-cloud-architecture/vaccine-freezer-mgr.git
+  labels:
+    app.kubernetes.io/name: freezer-mgr
+    app.kubernetes.io/version: 1.0.0-SNAPSHOT
+    app.openshift.io/runtime: quarkus
+    app: freezer-mgr
+  name: freezer-mgr
+spec:
+  host: ""
+  path: /
+  port:
+    targetPort: 8080
+  to:
+    kind: Service
+    name: freezer-mgr

@@ -1,0 +1,104 @@
+asyncapi: '2.0.0'
+id: 'urn:ibm:com:eda:vaccinedemo:reeferevents'
+info:
+  title: Vaccine Reefer Manager API
+  version: '1.0.0'
+  description: |
+    The Vaccine Reefer Manager API allows you
+    to remotely manage the refrigerator containers. The API is to support Kafka binding and Avro schema with Apicurio regsitry
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0'
+servers:
+  staging:
+    url: vaccine-kafka-kafka-bootstrap-jbsandbox.assets-arch-eda-6ccd7f378ae819553d37d5f2ee142bd6-0000.us-east.containers.appdomain.cloud:443
+    description: Kafka cluster managed with Strimzi on OpenShift ROKS cluster
+    protocol: kafka-secure
+    protocolVersion: '1.0.0'
+    security:
+      - saslScramCreds: []
+  development:
+    url: localhost:9092
+    description: Kafka local with docker compose
+    protocol: kafka-secure
+    protocolVersion: '1.0.0'
+channels:
+  /vaccine.reefers:
+    description: The reefer topic to get all reefer entity event type
+    publish:
+      operationId: reeferPub-1
+      summary: Inform about reefer conditions for a particular reefer.
+      description: The reefer events will have different payload and support avro schema and serdes
+      message:
+       headers:
+        type: object
+        properties:
+          correlationId:
+            description: Correlation ID set by application
+            type: string
+          applicationInstanceId:
+            description: Unique identifier for a given instance of the publishing application
+            type: string
+        bindings:
+          kafka:
+            key:
+              type: string
+              description: Key is the ReeferID
+            bindingVersion: '0.1.0'
+        schemaFormat: application/vnd.apache.avro+json;version=1.9.0
+        payload:
+          type: object
+          $ref: '#/components/messages/reeferEvent'
+        correlationId:
+            description: Correlation ID set by application
+            type: string
+    subscribe:
+      operationId: reeferSub-1
+      summary: Get reefer events
+      description: The reefer events will have different payload and support  avro schema and serdes
+      message:
+          $ref: '#/components/messages/reeferEvent'
+      bindings:
+        kafka:
+          groupId: 
+            type: string
+            enum:
+            - reefer-consumer
+          clientId:
+            type: string
+            enum:
+            - reefer-consumer
+          bindingVersion: '0.1.0'
+components:
+  securitySchemes:
+    saslScramCreds:
+      type: userPassword
+      description: SASL/SCRAM user to connect to Kafka
+      x-kafka-sasl-mechanism: 'SCRAM-SHA-256'
+  messages:
+    reeferEvent:
+      name: reeferEvent
+      bindings:
+          kafka:
+            key:
+              type: string
+              description: Key is the ReeferID
+            bindingVersion: '0.1.0'
+      schemaFormat: application/vnd.apache.avro+json;version=1.9.0
+      payload:
+        $ref: "#/components/schemas/reeferEvent"
+  schemas:
+    reeferEvent:
+        type: object
+        properties:
+          reefer_id:
+            type: string
+          status:
+            type: string
+          type:
+            type: string
+          brand:
+            type: string
+          location:
+            type: string
+    
