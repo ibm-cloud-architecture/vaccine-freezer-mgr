@@ -3,6 +3,7 @@ services:
   zookeeper:
     image: strimzi/kafka:latest-kafka-2.6.0
     container_name: zookeeper
+    hostname: zookeeper
     command: [
       "sh", "-c",
       "bin/zookeeper-server-start.sh config/zookeeper.properties"
@@ -14,6 +15,7 @@ services:
   kafka:
     image: strimzi/kafka:latest-kafka-2.6.0
     container_name: kafka
+    hostname: kafka
     command: [
       "sh", "-c",
       "bin/kafka-server-start.sh config/server.properties --override listeners=$${KAFKA_LISTENERS} --override advertised.listeners=$${KAFKA_ADVERTISED_LISTENERS} --override zookeeper.connect=$${KAFKA_ZOOKEEPER_CONNECT}"
@@ -40,3 +42,37 @@ services:
       SCHEMA_REGISTRY_URL: apicurio:8080
       KAFKA_MAIN_TOPIC: telemetries
       FREEZER_MGR_URL: http://localhost:8080
+  monitoringagent:
+    image: quay.io/ibmcase/reefer-monitoring-agent
+    container_name: monitoringagent
+    depends_on:
+      - kafka
+    ports:
+      - 8081:8080
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      QUARKUS_PROFILE: dev
+      SCHEMA_REGISTRY_URL: apicurio:8084
+      TELEMETRY_TOPIC: telemetries
+      ALERT_TOPIC: vaccine.reeferAlerts
+      POD_IP: localhost:8080
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: "nothing"
+      KAFKA_SSL_KEYSTORE_PASSWORD: "nothing"
+  freezermgr:
+    image: maven
+    container_name: freezermgr
+    hostname: freezermgr
+    volumes:
+      - "./:/app"
+      - "~/.m2:/root/.m2"
+    depends_on:
+      - kafka
+    hostname: freezermgr
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - QUARKUS_PROFILE=dev
+    ports:
+      - "8080:8080"
+      - "5005:5005"
+    working_dir: /app
+    command: "mvn quarkus:dev"

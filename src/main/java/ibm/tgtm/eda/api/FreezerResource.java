@@ -28,7 +28,7 @@ public class FreezerResource {
 
     @Inject
     @Channel("internal-alert-stream")
-    Publisher <ReeferAlert> alerts;
+    Publisher<ReeferAlert> alerts;
 
 
     @GET
