@@ -68,7 +68,7 @@ The application can be packaged using:
 ./mvnw package 
 ```
 
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory and a set of openshift / kubernetes manifests.
+It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory and a set of OpenShift / Kubernetes manifests.
 
 The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
 
